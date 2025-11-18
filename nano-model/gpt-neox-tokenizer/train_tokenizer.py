@@ -116,7 +116,7 @@ config = {
     "architectures": ["LlamaForCausalLM"],
     "attention_bias": False,
     "attention_dropout": 0.0,
-    "bos_token_id": 1,
+    "bos_token_id": 0,
     "eos_token_id": 2,
     "head_dim": 64,
     "hidden_act": "silu",
