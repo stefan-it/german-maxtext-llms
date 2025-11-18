@@ -1,10 +1,10 @@
-# German MaxText LLMs
+# German MaxText SLMs
 
-This repository contains training code for pretraining German language models from scratch on TPUs using the [MaxText](https://github.com/AI-Hypercomputer/maxtext) library.
+This repository contains training code for pretraining small German language models from scratch on TPUs using the [MaxText](https://github.com/AI-Hypercomputer/maxtext) library.
 
 ## Features
 
-- Full pretraining pipeline for German LLMs on TPU infrastructure
+- Full pretraining pipeline for German SLMs on TPU infrastructure
 - Recipes for training various tokenizers optimized for German
 - Comprehensive tokenizer evaluation across multiple metrics
 
