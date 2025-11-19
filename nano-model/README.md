@@ -256,14 +256,137 @@ It is a very easy to understand and compact builder.
 After writing the very compact builder script, it is time to build the actual TFDS dataset using:
 
 ```bash
-cd german_maxtext_data_debug
+cd german_maxtext_nano_data
 tfds build
 ```
 
-The final created TFDS is located under `$HOME/tensorflow_datasets/german_maxtext_data_debug`. This folder needs to be uploaded to a GCP bucket:
+The final created TFDS is located under `$HOME/tensorflow_datasets/german_maxtext_nano_data`. This folder needs to be uploaded to a GCP bucket:
 
 ```bash
-gsutil -m cp -r $HOME/tensorflow_datasets/german_maxtext_data_debug gs://german-maxtext
+gsutil -m cp -r $HOME/tensorflow_datasets/german_maxtext_nano_data gs://german-maxtext
 ```
 
 **Notice:** Please adjust the GCP bucket name.
+
+## TPU Setup
+
+This section show how to setup a TPU VM to start LLM pretraining. It is mainly inspired by the [official documentation](https://docs.cloud.google.com/tpu/docs/v6e-training?hl=en).
+
+### Environment Variables
+
+First, we need to set the GCP project id and TPU zone:
+
+```bash
+export PROJECT_ID=XXX
+export ZONE=europe-west4-a
+export TPU_NAME=german-maxtext
+export ACCELERATOR_TYPE=v6e-8
+export RUNTIME_VERSION=v2-alpha-tpuv6e
+```
+
+### TPU VM Creation
+
+Then the TPU VM can be created via the [queued resource manager]((https://cloud.google.com/tpu/docs/queued-resources)):
+
+```bash
+# https://docs.cloud.google.com/tpu/docs/spot?hl=en
+gcloud compute tpus queued-resources create german-maxtext-resource \
+  --node-id $TPU_NAME \
+  --project $PROJECT_ID \
+  --zone $ZONE \
+  --accelerator-type $ACCELERATOR_TYPE \
+  --runtime-version $RUNTIME_VERSION \
+  --spot
+```
+
+You can check the creation status with:
+
+```bash
+gcloud alpha compute tpus queued-resources list --project $PROJECT_ID --zone $ZONE
+```
+
+The different states are `WAITING_FOR_RESOURCES`, `PROVISIONING` and `ACTIVE`.
+
+### Dependencies
+
+As soon as the TPU VM has reached the `ACTIVE` state, we can SSH into the VM and start a `tmux` session:
+
+```bash
+gcloud alpha compute tpus tpu-vm ssh ${TPU_NAME} \
+   --project=${PROJECT_ID} \
+   --zone ${ZONE} \
+   --worker=0
+
+tmux
+```
+
+Then all necessary dependencies can be installed:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+source ~/.bashrc
+
+# Check that uv is properly installed
+uv --version
+
+# We use a forked repo that comes with all necessary configs
+git clone https://github.com/stefan-it/maxtext.git
+cd maxtext
+git checkout german-maxtext-slms
+
+uv venv --python 3.12 --seed maxtext_venv
+source maxtext_venv/bin/activate
+
+uv pip install -e .[tpu] --resolution=lowest
+```
+
+### Demo Training
+
+It is highly recommend to test the TPU VM setup incl. MaxText. This can be done by starting a demo run:
+
+```bash
+export RUN_NAME=demo-run
+export GCP_BUCKET=gs://german-maxtext/demo-run
+python3 -m MaxText.train src/MaxText/configs/base.yml \
+  run_name=$YOUR_JOB_NAME \
+  base_output_directory=$GCP_BUCKET \
+  dataset_type=synthetic \
+  steps=100
+```
+
+### nano Model (nanochat Tokenizer)
+
+The first ablation model uses our previously trained nanochat tokenizer.
+
+As hyper-parameters we use the same as propose in the [LLäMmlein](https://arxiv.org/abs/2411.11171) paper:
+
+| Parameter      | MaxText Parameter Name                                                    | Value                |
+|:---------------|:--------------------------------------------------------------------------|---------------------:|
+| Steps          | `steps`                                                                   | 466,509              |
+| Learning Rate  | `learning_rate`                                                           | 6e-04                |
+| Batch Size     | `per_device_batch_size` x `gradient_accumulation_steps` x Number of Chips | 32 x 4 x 8 = 1024    |
+| Context Length | `max_target_length`                                                       | 2048                 |
+
+```bash
+export RUN_NAME=nano-nanochat-tokenizer-ablation-1
+export DATASET_PATH=gs://german-maxtext
+
+python3 -m MaxText.train src/MaxText/configs/base.yml \
+  run_name=$RUN_NAME \
+  base_output_directory=gs://german-maxtext/$RUN_NAME \
+  dataset_type=tfds \
+  dataset_path=${DATASET_PATH} \
+  dataset_name=german_maxtext_nano_data \
+  train_split=train \
+  async_checkpointing=false \
+  per_device_batch_size=1 \
+  model_name='nano-german-slm' \
+  learning_rate=6e-06 \
+  per_device_batch_size=32 \
+  gradient_accumulation_steps=4 \
+  steps=466509 \
+  max_target_length=2048 \
+  packing=false \
+  checkpoint_period=10000 \
+  tokenizer_type=huggingface tokenizer_path=german-maxtext-slms/nano-nanochat-tokenizer
+```
