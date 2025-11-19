@@ -2,7 +2,7 @@
 
 This section shows how to pretrain a Nano Model (LLama-based, 125M parameters).
 
-Two tokenizers (nanochat and GPT-NeoX) will be trained to perform various ablation experiments.
+Two tokenizers (nanochat and GPT-NeoX) will be trained to perform the first ablation experiments.
 
 ## Setup
 
@@ -171,3 +171,99 @@ This shows the following results:
 | nano_neox       | **0.204** | 92.4%             | **0.0090**       | **5.15**     | 26.9            |
 
 It seems that our GPT-NeoX tokenizer does a great job!
+
+## Pretraining Corpus
+
+We use the first 240 parquet files from the German nanochat corpus for constructing our pretraining corpus.
+
+### TensorFlow Datasets (TFDS)
+
+In general, MaxText has support for [Grain](https://maxtext.readthedocs.io/en/latest/guides/data_input_pipeline/data_input_grain.html), [Hugging Face Model Hub](https://maxtext.readthedocs.io/en/latest/guides/data_input_pipeline/data_input_hf.html) and [TensorFlow Datasets](https://maxtext.readthedocs.io/en/latest/guides/data_input_pipeline/data_input_tfds.html).
+
+For our project we use TFDS for the following reasons:
+
+* HF Hub has too many limitations (sometimes 504 errors, only 1 epoch is currently supported)
+* Grain would require a mounted GCP bucket (I have no experience how stable that is)
+
+So in the next section, we show how to convert a Hugging Face Dataset to a TensorFlow dataset (TFDS). That dataset will be uploaded to a GCP bucket so it can be used for MaxText training.
+
+#### TFDS Init
+
+First, we create a new dataset with the [TFDS cli](https://www.tensorflow.org/datasets/add_dataset):
+
+```bash
+tfds new german_maxtext_nano_data
+```
+
+**Note**: We will create a small dataset for debugging purposes first.
+
+#### TFDS Implementation
+
+The previous `tfds new` command created a new folder structure for our dataset. Now, we need to implement the dataset builder logic:
+
+* The original dataset is fetched from the Hugging Face Model hub using the `load_dataset()` method
+* The `text` column of each dataset entry is read and returned in a TFDS compatible format
+
+For this, we need to modify the `german_maxtext_nano_data/german_maxtext_nano_data_dataset_builder.py` file:
+
+```python
+"""german_maxtext_nano_data dataset."""
+
+import tensorflow_datasets as tfds
+
+
+class Builder(tfds.core.GeneratorBasedBuilder):
+  """DatasetBuilder for german_maxtext_nano_data dataset."""
+
+  VERSION = tfds.core.Version('1.0.0')
+  RELEASE_NOTES = {
+      '1.0.0': 'Initial release.',
+  }
+
+  def _info(self) -> tfds.core.DatasetInfo:
+    """Returns the dataset metadata."""
+    return self.dataset_info_from_configs(
+        features=tfds.features.FeaturesDict({
+            'text': tfds.features.Text(),
+        }),
+        supervised_keys=None,
+        homepage='https://huggingface.co/datasets/german-maxtext-slms/nano-training-data',
+    )
+
+  def _split_generators(self, dl_manager: tfds.download.DownloadManager):
+    """Returns SplitGenerators."""
+    # Load dataset from Hugging Face
+    from datasets import load_dataset as hf_load_dataset
+    ds = hf_load_dataset("german-maxtext-slms/nano-training-data")
+
+    # Returns the Dict[split names, Iterator[Key, Example]]
+    return {
+        'train': self._generate_examples(ds['train']),
+    }
+
+  def _generate_examples(self, dataset):
+    """Yields examples."""
+    for idx, row in enumerate(dataset):
+      yield idx, {
+          'text': row['text'],
+      }
+```
+
+It is a very easy to understand and compact builder.
+
+#### TFDS Build
+
+After writing the very compact builder script, it is time to build the actual TFDS dataset using:
+
+```bash
+cd german_maxtext_data_debug
+tfds build
+```
+
+The final created TFDS is located under `$HOME/tensorflow_datasets/german_maxtext_data_debug`. This folder needs to be uploaded to a GCP bucket:
+
+```bash
+gsutil -m cp -r $HOME/tensorflow_datasets/german_maxtext_data_debug gs://german-maxtext
+```
+
+**Notice:** Please adjust the GCP bucket name.
