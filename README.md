@@ -19,7 +19,7 @@ This is an active project with regular updates. Check back frequently for new fe
 
 ## nano Model
 
-We trained a nano model with 176M parameters. The pretraining book can be found [here](nano-model/README.md).
+We trained a nano model with 176M parameters. The training playbook can be found [here](nano-model/README.md).
 
 ## ❤️ Acknowledgements
 
