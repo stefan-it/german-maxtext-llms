@@ -42,7 +42,7 @@ We download the first 8 parquet files from the German nanochat corpus for our to
 ```bash
 mkdir vocab-corpus
 
-hf download \
+huggingface-cli download \
     --repo-type dataset \
     --local-dir ./vocab-corpus stefan-it/nanochat-german-data shard_0000{0..7}.parquet
 ```
@@ -78,7 +78,7 @@ Saved tokenizer encoding to nanochat-tokenizer/tokenizer.pkl
 Final vocab size: 65536
 ```
 
-Additionally, also a HF fast tokenizer is written to `nanochat-tokenizer-hf`, which can be test with:
+Additionally, a HF fast tokenizer is written to `nanochat-tokenizer-hf`, which can be tested with:
 
 ```python
 from transformers import AutoTokenizer
@@ -110,7 +110,7 @@ At the end it outputs:
 Training time: 61.88s
 ```
 
-So the training is a bit slower than the nanochat tokenizer.
+So the training is slightly slower than the nanochat tokenizer.
 
 The trained GPT-NeoX tokenizer can also be found on the [Model Hub](https://huggingface.co/german-maxtext-slms/nano-neox-tokenizer).
 
@@ -149,7 +149,7 @@ We use the [GerTokEval](https://github.com/stefan-it/german-tokenizer-benchmark/
 
 Then we started the evaluation framework with:
 
-```
+```bash
 python3 scripts/run_tokenizer_analysis.py \
   --samples-per-lang 153035 \
   --tokenizer-config german-configs/tokenizer/llms/tokenizer_config.json \
@@ -183,13 +183,13 @@ In general, MaxText has support for [Grain](https://maxtext.readthedocs.io/en/la
 For our project we use TFDS for the following reasons:
 
 * HF Hub has too many limitations (sometimes 504 errors, only 1 epoch is currently supported)
-* Grain would require a mounted GCP bucket (I have no experience how stable that is)
+* Grain would require a mounted GCP bucket (I have no experience with how stable that is)
 
 So in the next section, we show how to convert a Hugging Face Dataset to a TensorFlow dataset (TFDS). That dataset will be uploaded to a GCP bucket so it can be used for MaxText training.
 
 #### TFDS Init
 
-First, we create a new dataset with the [TFDS cli](https://www.tensorflow.org/datasets/add_dataset):
+First, we create a new dataset with the [TFDS CLI](https://www.tensorflow.org/datasets/add_dataset):
 
 ```bash
 tfds new german_maxtext_nano_data
@@ -201,7 +201,7 @@ tfds new german_maxtext_nano_data
 
 The previous `tfds new` command created a new folder structure for our dataset. Now, we need to implement the dataset builder logic:
 
-* The original dataset is fetched from the Hugging Face Model hub using the `load_dataset()` method
+* The original dataset is fetched from the Hugging Face Model Hub using the `load_dataset()` method
 * The `text` column of each dataset entry is read and returned in a TFDS compatible format
 
 For this, we need to modify the `german_maxtext_nano_data/german_maxtext_nano_data_dataset_builder.py` file:
@@ -270,7 +270,7 @@ gsutil -m cp -r $HOME/tensorflow_datasets/german_maxtext_nano_data gs://german-m
 
 ## TPU Setup
 
-This section show how to setup a TPU VM to start LLM pretraining. It is mainly inspired by the [official documentation](https://docs.cloud.google.com/tpu/docs/v6e-training?hl=en).
+This section shows how to set up a TPU VM to start LLM pretraining. It is mainly inspired by the [official documentation](https://docs.cloud.google.com/tpu/docs/v6e-training?hl=en).
 
 ### Environment Variables
 
@@ -352,13 +352,13 @@ uv pip install -e .[tpu] --resolution=lowest
 
 ### Demo Training
 
-It is highly recommend to test the TPU VM setup incl. MaxText. This can be done by starting a demo run:
+It is highly recommended to test the TPU VM setup including MaxText. This can be done by starting a demo run:
 
 ```bash
 export RUN_NAME=demo-run
 export GCP_BUCKET=gs://german-maxtext/demo-run-v4-32
 python3 -m MaxText.train src/MaxText/configs/base.yml \
-  run_name=$YOUR_JOB_NAME \
+  run_name=$RUN_NAME \
   base_output_directory=$GCP_BUCKET \
   dataset_type=synthetic \
   steps=100
@@ -370,7 +370,7 @@ python3 -m MaxText.train src/MaxText/configs/base.yml \
 
 The first ablation model uses our previously trained nanochat tokenizer.
 
-As hyper-parameters we use the same as propose in the [LLäMmlein](https://arxiv.org/abs/2411.11171) paper:
+As hyper-parameters we use the same as proposed in the [LLäMmlein](https://arxiv.org/abs/2411.11171) paper:
 
 | Parameter      | MaxText Parameter Name                                                    | Value                |
 |:---------------|:--------------------------------------------------------------------------|---------------------:|
@@ -379,7 +379,7 @@ As hyper-parameters we use the same as propose in the [LLäMmlein](https://arxiv
 | Batch Size     | `per_device_batch_size` x `gradient_accumulation_steps` x Number of Chips | 32 x 4 x 8 = 1024    |
 | Context Length | `max_target_length`                                                       | 2048                 |
 
-Notice: We trained the model on a v6-8 TPU.
+Notice: We trained the model on a v6e-8 TPU.
 
 ```bash
 export RUN_NAME=nano-nanochat-tokenizer-ablation-2
@@ -406,9 +406,9 @@ python3 -m MaxText.train src/MaxText/configs/base.yml \
 
 ### nano Model (GPT-NeoX Tokenizer)
 
-The first ablation model uses our previously trained GPT-NeoX tokenizer.
+The second ablation model uses our previously trained GPT-NeoX tokenizer.
 
-As hyper-parameters we use the same as propose in the [LLäMmlein](https://arxiv.org/abs/2411.11171) paper:
+As hyper-parameters we use the same as proposed in the [LLäMmlein](https://arxiv.org/abs/2411.11171) paper:
 
 | Parameter      | MaxText Parameter Name                                                    | Value                 |
 |:---------------|:--------------------------------------------------------------------------|----------------------:|
@@ -417,7 +417,7 @@ As hyper-parameters we use the same as propose in the [LLäMmlein](https://arxiv
 | Batch Size     | `per_device_batch_size` x `gradient_accumulation_steps` x Number of Chips | 32 x 2 x 4 x 4 = 1024 |
 | Context Length | `max_target_length`                                                       | 2048                  |
 
-Notice: We trained the model on a v3-32 TPU Pod.
+Notice: We trained the model on a v4-32 TPU Pod.
 
 ```bash
 export RUN_NAME=nano-gpt-neox-tokenizer-ablation-pod-1
@@ -442,13 +442,13 @@ python3 -m MaxText.train src/MaxText/configs/base.yml \
   tokenizer_type=huggingface tokenizer_path=german-maxtext-slms/nano-neox-tokenizer
 ```
 
-## Ablations - Different Learning Rate
+## Ablations - Different Learning Rates
 
 In this section, we try out different learning rates for different tokenizers.
 
 ### nano Model (nanochat Tokenizer)
 
-s hyper-parameters we use the same as propose in the [LLäMmlein](https://arxiv.org/abs/2411.11171) paper:
+As hyper-parameters we use the same as proposed in the [LLäMmlein](https://arxiv.org/abs/2411.11171) paper:
 
 | Parameter      | MaxText Parameter Name                                                    | Value                 |
 |:---------------|:--------------------------------------------------------------------------|----------------------:|
@@ -457,7 +457,7 @@ s hyper-parameters we use the same as propose in the [LLäMmlein](https://arxiv.
 | Batch Size     | `per_device_batch_size` x `gradient_accumulation_steps` x Number of Chips | 32 x 2 x 4 x 4 = 1024 |
 | Context Length | `max_target_length`                                                       | 2048                  |
 
-Notice: We trained the model on a v3-32 TPU Pod.
+Notice: We trained the model on a v4-32 TPU Pod.
 
 ```bash
 export RUN_NAME=nano-nanochat-tokenizer-ablation-lr4e-06-1
@@ -484,7 +484,7 @@ python3 -m MaxText.train src/MaxText/configs/base.yml \
 
 ### nano Model (GPT-NeoX Tokenizer)
 
-s hyper-parameters we use the same as propose in the [LLäMmlein](https://arxiv.org/abs/2411.11171) paper:
+As hyper-parameters we use the same as proposed in the [LLäMmlein](https://arxiv.org/abs/2411.11171) paper:
 
 | Parameter      | MaxText Parameter Name                                                    | Value                 |
 |:---------------|:--------------------------------------------------------------------------|----------------------:|
@@ -493,7 +493,7 @@ s hyper-parameters we use the same as propose in the [LLäMmlein](https://arxiv.
 | Batch Size     | `per_device_batch_size` x `gradient_accumulation_steps` x Number of Chips | 32 x 2 x 4 x 4 = 1024 |
 | Context Length | `max_target_length`                                                       | 2048                  |
 
-Notice: We trained the model on a v3-32 TPU Pod.
+Notice: We trained the model on a v4-32 TPU Pod.
 
 ```bash
 export RUN_NAME=nano-gpt-neox-tokenizer-ablation-pod-1-lr4e-06-1
@@ -682,4 +682,4 @@ lm_eval --model hf --model_args pretrained="german-maxtext-slms/nano-neox-lr4e-0
 | nano + GPT-NeoX tokenizer I  | 0.2019       | 0.2601            | 0.2511             | 0.2432                  | 0.2365          | 0.2589                  | 0.5179                  | 0.2814 |
 | nano + GPT-NeoX tokenizer II | 0.2044       | 0.2609            | 0.2515             | 0.2464                  | 0.2414          | 0.2640                  | 0.5210                  | 0.2842 |
 
-Overall, it seems that the GPT-NeoX tokenizer achieves better results. Thus, we will select this tokenizer as base for future experiments.
+Overall, it seems that the GPT-NeoX tokenizer achieves better results. Thus, we will select this tokenizer as the base for future experiments.
