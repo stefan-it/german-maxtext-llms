@@ -14,7 +14,12 @@ This is an active project with regular updates. Check back frequently for new fe
 
 ## Changelog
 
+* 02.12.2025: Release of pretraining book for the nano model.
 * **15.11.2025**: Initial release
+
+## nano Model
+
+We trained a nano model with 176M parameters. The pretraining book can be found [here](nano-model/README.md).
 
 ## ❤️ Acknowledgements
 
