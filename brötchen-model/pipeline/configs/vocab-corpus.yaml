@@ -1,0 +1,28 @@
+tokenizer:
+  name: "german-maxtext-slms/nano-neox-tokenizer"
+
+datatrove:
+  workers: 1
+  tasks: 1
+
+datasets:
+  finepdfs_english:
+    path: "data/eng_Latn/train"
+    max_tokens: 200_000_000
+    output_path: "./vocab-corpus"
+  finepdfs_german:
+    path: "data/deu_Latn/train"
+    max_tokens: 1_000_000_000
+    output_path: "./vocab-corpus"
+  fineweb_edu_english:
+    path: "sample/10BT"
+    max_tokens: 100_000_000
+    output_path: "./vocab-corpus"
+  fineweb_english:
+    path: "sample/10BT"
+    max_tokens: 100_000_000
+    output_path: "./vocab-corpus"
+  fineweb2_german:
+    path: "data/deu_Latn/train"
+    max_tokens: 600_000_000
+    output_path: "./vocab-corpus"
