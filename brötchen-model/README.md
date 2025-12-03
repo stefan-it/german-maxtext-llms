@@ -6,7 +6,7 @@ For our dataset preparation pipeline we use the great [DataTrove](https://github
 
 ### Vocab Dataset
 
-First, we download the necessary parquet files:
+First, we download the necessary parquet files (`brötchen-model` as root folder):
 
 ```bash
 # FineWeb2 (German)
@@ -14,6 +14,7 @@ hf download HuggingFaceFW/fineweb-2 \
   --repo-type dataset \
   --revision af9c13333eb981300149d5ca60a8e9d659b276b9 \
   --include "data/deu_Latn/train/000_0000[0-9].parquet" \
+  --max-workers 1 \
   --local-dir ./fineweb2_german
 
 # FinePdfs
@@ -21,6 +22,7 @@ hf download HuggingFaceFW/finepdfs \
   --repo-type dataset \
   --revision d8e85441529983be986a6eb9e0316627c8035e6d \
   --include "data/deu_Latn/train/000_0000[0-9].parquet" \
+  --max-workers 1 \
   --local-dir ./finepdfs_german
 
 # FineWeb (English)
@@ -28,6 +30,7 @@ hf download HuggingFaceFW/fineweb \
   --repo-type dataset \
   --revision 9bb295ddab0e05d785b879661af7260fed5140fc \
   --include "sample/10BT/*.parquet" \
+  --max-workers 1 \
   --local-dir ./fineweb_english
 
 # FineWeb-Edu (English)
@@ -35,6 +38,7 @@ hf download HuggingFaceFW/fineweb-edu \
   --repo-type dataset \
   --revision 87f09149ef4734204d70ed1d046ddc9ca3f2b8f9 \
   --include "sample/10BT/*.parquet" \
+  --max-workers 1 \
   --local-dir ./fineweb_edu_english
 
 # FinePdfs
@@ -42,6 +46,7 @@ hf download HuggingFaceFW/finepdfs \
   --repo-type dataset \
   --revision d8e85441529983be986a6eb9e0316627c8035e6d \
   --include "data/eng_Latn/train/000_0000[0-9].parquet" \
+  --max-workers 1 \
   --local-dir ./finepdfs_english
 ```
 
@@ -104,4 +109,10 @@ The pipeline for creating our vocab data can be started with:
 
 ```bash
 python3 -m pipeline.start_pipeline --config ./pipeline/configs/vocab-corpus.yaml
+```
+
+The overall subtoken stats can be retrieved via:
+
+```bash
+python3 -m pipeline.count_subtokens --config ./pipeline/configs/vocab-corpus.yaml
 ```
