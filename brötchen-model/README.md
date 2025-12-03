@@ -4,7 +4,6 @@
 
 For our dataset preparation pipeline we use the great [DataTrove](https://github.com/huggingface/datatrove) library.
 
-
 ### Vocab Dataset
 
 First, we download the necessary parquet files:
@@ -100,3 +99,9 @@ We want to use 2B subtokens (measured with our GPT-NeoX tokenizer from the nano 
 | FineWeb (English)     | 5%         | 100M     | English  |
 | FineWeb-Edu (English) | 5%         | 100M     | English  |
 | FinePdfs (English)    | 10%        | 200M     | English  |
+
+The pipeline for creating our vocab data can be started with:
+
+```bash
+python3 -m pipeline.start_pipeline --config ./pipeline/configs/vocab-corpus.yaml
+```
