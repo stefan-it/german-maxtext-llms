@@ -125,3 +125,15 @@ python3 -m pipeline.count_subtokens --config ./pipeline/configs/vocab-corpus.yam
 | fineweb_english     | 100,000,727       |
 | fineweb2_german     | 600,000,024       |
 | All                 | 2,000,026,571     |
+
+## Pretraining Data (30-50-5-5-10 Mix)
+
+We want to use 200B subtokens (measured with our previously trained tokenizer) as our vocab corpus from the following datasets:
+
+| Dataset               | Percentage | Tokens   | Language |
+|-----------------------|------------|---------:|----------|
+| FineWeb2 (German)     | 30%        |  60B     | German   |
+| FinePdfs (German)     | 50%        | 100B     | German   |
+| FineWeb (English)     | 5%         |  10B     | English  |
+| FineWeb-Edu (English) | 5%         |  10B     | English  |
+| FinePdfs (English)    | 10%        |  20B     | English  |
