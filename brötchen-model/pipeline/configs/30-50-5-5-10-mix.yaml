@@ -1,5 +1,5 @@
 tokenizer:
-  name: "german-maxtext-slms/nano-neox-tokenizer"
+  name: "german-maxtext-slms/broetchen-ablation-1-tokenizer"
 
 datatrove:
   workers: 1
