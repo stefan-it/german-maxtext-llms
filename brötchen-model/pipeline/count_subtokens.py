@@ -43,10 +43,10 @@ def main():
         
         dataset_name_stats[dataset_name] = total_subtokens
 
-        rows.append([dataset_name, total_subtokens])
+        rows.append([dataset_name, f"{total_subtokens:,}"])
 
     # Add total row
-    rows.append(["All", sum(dataset_name_stats.values())])
+    rows.append(["All", f"{sum(dataset_name_stats.values()):,}"])
 
     print(tabulate(rows, headers=headers, tablefmt="github"))
 
