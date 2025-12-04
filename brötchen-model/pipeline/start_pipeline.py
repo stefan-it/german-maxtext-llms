@@ -1,4 +1,5 @@
 import argparse
+import os
 import yaml
 
 from datatrove.executor import LocalPipelineExecutor
@@ -19,6 +20,8 @@ def main():
     )
 
     args = parser.parse_args()
+
+    os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     with open(args.config, 'r') as f:
         config = yaml.safe_load(f)
@@ -41,7 +44,7 @@ def main():
             pipeline=pipeline,
             tasks=config["datatrove"]["tasks"],
             workers=config["datatrove"]["workers"],
-            logging_dir="./logs",
+            logging_dir=f"./logs/{dataset_name}",
         )
 
         executor.run()
