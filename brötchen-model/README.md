@@ -116,3 +116,12 @@ The overall subtoken stats can be retrieved via:
 ```bash
 python3 -m pipeline.count_subtokens --config ./pipeline/configs/vocab-corpus.yaml
 ```
+
+| Dataset name        | Total Subtokens   |
+|---------------------|------------------:|
+| finepdfs_english    | 200,003,169       |
+| finepdfs_german     | 1,000,020,931     |
+| fineweb_edu_english | 100,001,720       |
+| fineweb_english     | 100,000,727       |
+| fineweb2_german     | 600,000,024       |
+| All                 | 2,000,026,571     |
