@@ -137,3 +137,9 @@ We want to use 200B subtokens (measured with our previously trained tokenizer) a
 | FineWeb (English)     | 5%         |  10B     | English  |
 | FineWeb-Edu (English) | 5%         |  10B     | English  |
 | FinePdfs (English)    | 10%        |  20B     | English  |
+
+Start the pipeline with:
+
+```bash
+python3 -m pipeline.start_pipeline --config ./pipeline/configs/30-50-5-5-10-mix.yaml
+```
