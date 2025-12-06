@@ -56,12 +56,21 @@ def main():
         total_subtokens = 0
         processed_docs = 0
 
-        dataset = load_dataset(
-            dataset_hf_identifier,
-            data_files=hf_data_files,
-            split="train",
-            streaming=True
-        )
+        if "hf_dataset_name" in dataset_config:
+            dataset = load_dataset(
+                dataset_hf_identifier,
+                name=dataset_config["hf_dataset_name"],
+                data_files=hf_data_files,
+                split="train",
+                streaming=True
+            )
+        else:
+            dataset = load_dataset(
+                dataset_hf_identifier,
+                data_files=hf_data_files,
+                split="train",
+                streaming=True
+            )
 
         current_shard_index = 0
 
