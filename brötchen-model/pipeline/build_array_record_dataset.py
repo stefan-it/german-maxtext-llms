@@ -1,4 +1,5 @@
 import argparse
+import time
 import os
 import yaml
 
@@ -56,6 +57,8 @@ def main():
 
         writer =  ArrayRecordWriter(shard_path, "group_size:1")
 
+        start_time = time.time()
+
         try:
             for example in dataset:
                 text = example['text']
@@ -69,11 +72,13 @@ def main():
                 processed_docs += 1
 
                 if processed_docs % 1_000 == 0:
-                    print(f"Processed {processed_docs:,} documents | Total subtokens: {total_subtokens:,}")
+                    elapsed_time = time.time() - start_time
+                    elapsed_minutes = elapsed_time / 60
+                    print(f"Processed {processed_docs:,} documents | Total subtokens: {total_subtokens:,} | Elapsed time: {elapsed_minutes:.2f} minutes")
 
                 # Log progress
                 if processed_docs % save_after_n_documents == 0:
-                    print(f"Processed {processed_docs:,} documents | Total subtokens: {total_subtokens:,} | Written Array Record Shard: {current_shard_index:,}")
+                    print(f"Written Array Record Shard: {current_shard_index:,}")
                     # Close current writer
                     writer.close()
 
