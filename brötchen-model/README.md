@@ -162,8 +162,17 @@ We want to use 200B subtokens (measured with our previously trained tokenizer) a
 | FineWeb-Edu (English) | 5%         |  10B     | English  |
 | FinePdfs (English)    | 10%        |  20B     | English  |
 
-Start the pipeline with:
+For creating the pretraining data, we use an own way for data preprocessing (so no longer the DataTrove pipeline):
+
+DataTrove cannot handle termination after n subtokens, when using it with multiple tasks/workers. The `TokenLimiter` perfectly works when using `tasks=1` and `workers=1`, but when using it with multiple workers/tasks then the `max_tokens` limit is applied to each chunk that is read in parallel.
+
+In our final solution we make use of Dataset streaming. This also heavily reduced the used and needed storage space.
+
+Additionally, we switch from using TensorFlow Datasets. One reason is: to build the final "Dataset" all different corpora must be located on disk. It is not possible to combine e.g. preprocessed corpora after another. Using Grain and Array Records, we can upload preprocessed datasets (e.g FineWeb English) after another and combine it later for pretraining via configuration. Technically, it is also possible to define datasets mixings on a configuration file level later. So using Grain and Array Records has a lot of more advantages over TensorFlow Datasets or Hugging Face Datasets in MaxText.
+
+The dataset creation can be started with:
 
 ```bash
-python3 -m pipeline.start_pipeline --config ./pipeline/configs/30-50-5-5-10-mix.yaml
+# FinePdfs (English)
+python3 -m pipeline.build_array_record_dataset --config pipeline/configs/30-50-5-5-10-mix/finepdfs_english.yaml
 ```
