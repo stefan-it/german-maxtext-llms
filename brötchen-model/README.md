@@ -175,4 +175,7 @@ The dataset creation can be started with:
 ```bash
 # FinePdfs (English)
 python3 -m pipeline.build_array_record_dataset --config pipeline/configs/30-50-5-5-10-mix/finepdfs_english.yaml
+
+# FineWeb (English)
+python3 -m pipeline.build_array_record_dataset --config pipeline/configs/30-50-5-5-10-mix/fineweb_english.yaml
 ```
