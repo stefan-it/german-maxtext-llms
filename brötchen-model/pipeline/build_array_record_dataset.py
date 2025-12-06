@@ -1,4 +1,5 @@
 import argparse
+import tensorflow as tf
 import time
 import os
 import yaml
@@ -7,6 +8,17 @@ from array_record.python.array_record_module import ArrayRecordWriter
 from datasets import load_dataset
 from pathlib import Path
 from transformers import AutoTokenizer
+
+
+# Add this function to create proper TF Examples
+def create_tf_example(text: str) -> bytes:
+    """Create a serialized TF Example proto from text."""
+    feature = {
+        'text': tf.train.Feature(bytes_list=tf.train.BytesList(value=[text.encode('utf-8')]))
+    }
+    example = tf.train.Example(features=tf.train.Features(feature=feature))
+    return example.SerializeToString()
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -88,7 +100,7 @@ def main():
 
                     writer =  ArrayRecordWriter(shard_path, "group_size:1")
 
-                writer.write(str.encode(text))
+                writer.write(create_tf_example(text))
 
                 # Check if threshold is reached
                 if total_subtokens >= dataset_max_subtokens:
