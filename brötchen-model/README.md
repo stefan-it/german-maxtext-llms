@@ -1,5 +1,29 @@
 # Brötchen SLM
 
+## Setup
+
+In order to start our DataTrove pipelines, we need to install various dependencies, that are documented in this section.
+
+First, change to the correct folder:
+
+```bash
+cd brötchen-model
+```
+
+then the following commands will install all necessary packages (both Rust and Python):
+
+```bash
+# Install uv
+command -v uv &> /dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
+
+source ~/.bashrc
+
+uv sync
+
+# Activate venv
+source .venv/bin/activate
+```
+
 ## Datasets
 
 For our dataset preparation pipeline we use the great [DataTrove](https://github.com/huggingface/datatrove) library.
