@@ -1,0 +1,12 @@
+tokenizer:
+  name: "german-maxtext-slms/broetchen-ablation-1-tokenizer"
+
+array_record:
+  safe_after_n_documents: 100_000
+
+datasets:
+  fineweb_english:
+    hf_data_files: "sample/10BT/*.parquet"
+    max_subtokens: 10_000_000_000
+    hf_identifier: "HuggingFaceFW/fineweb"
+    output_path: "./30-50-5-5-10-mix/fineweb_english"

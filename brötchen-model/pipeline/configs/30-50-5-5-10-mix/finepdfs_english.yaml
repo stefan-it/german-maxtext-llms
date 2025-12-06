@@ -1,0 +1,29 @@
+tokenizer:
+  name: "german-maxtext-slms/broetchen-ablation-1-tokenizer"
+
+array_record:
+  safe_after_n_documents: 100_000
+
+datasets:
+  finepdfs_english:
+    hf_data_files: "data/eng_Latn/train/*.parquet"
+    max_subtokens: 20_000_000_000
+    hf_identifier: "HuggingFaceFW/finepdfs-edu"
+    output_path: "./30-50-5-5-10-mix/finepdfs_english"
+  #finepdfs_german:
+  #  hf_data_files: "data/deu_Latn/train/*.parquet"
+  #  max_tokens: 300_000
+  #  hf_identifier: "HuggingFaceFW/finepdfs-edu"
+  #  output_path: "./30-50-5-5-10-mix"
+  #fineweb_edu_english:
+  #  path: "sample/10BT"
+  #  max_tokens: 10_000_000_000
+  #  output_path: "./30-50-5-5-10-mix"
+  #fineweb_english:
+  #  path: "sample/10BT"
+  #  max_tokens: 10_000_000_000
+  #  output_path: "./30-50-5-5-10-mix"
+  #fineweb2_german:
+  #  path: "data/deu_Latn/train"
+  #  max_tokens: 60_000_000_000
+  #  output_path: "./30-50-5-5-10-mix"
