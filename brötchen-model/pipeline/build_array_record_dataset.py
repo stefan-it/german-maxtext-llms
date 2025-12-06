@@ -36,6 +36,9 @@ def main():
         dataset_output_path = Path(dataset_config["output_path"])
         tokenizer = AutoTokenizer.from_pretrained(dataset_tokenizer)
 
+        # For our record array writer
+        dataset_output_path.mkdir(parents=True, exist_ok=True)
+
         # Some stats
         total_subtokens = 0
         processed_docs = 0
