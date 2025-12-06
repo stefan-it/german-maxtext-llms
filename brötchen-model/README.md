@@ -179,3 +179,44 @@ python3 -m pipeline.build_array_record_dataset --config pipeline/configs/30-50-5
 # FineWeb (English)
 python3 -m pipeline.build_array_record_dataset --config pipeline/configs/30-50-5-5-10-mix/fineweb_english.yaml
 ```
+
+## Demo Training
+
+We upload one Array Record to GCP and start a demo training run on a v4-8 TPU (no pod):
+
+```bash
+export TIMESTAMP=$(date +%Y%m%d-%H%M)
+export APP_NAME=maxtext
+export DATASET_GCS_BUCKET=german-maxtext-2
+export MOUNT_PATH=/tmp/gcsfuse
+
+mkdir -p /tmp/gcsfuse
+
+gcsfuse -o ro --implicit-dirs  \
+        --log-file=$HOME/gcsfuse_$TIMESTAMP.json "$DATASET_GCS_BUCKET" "$MOUNT_PATH"
+```
+
+```bash
+export RUN_NAME=nano-nanochat-tokenizer-arry-record-debug-2
+export DATASET_PATH=gs://german-maxtext-2
+
+python3 -m MaxText.train src/MaxText/configs/base.yml \
+  run_name=$RUN_NAME \
+  base_output_directory=gs://german-maxtext/$RUN_NAME \
+  dataset_type=grain \
+  grain_file_type=arrayrecord \
+  grain_train_files=/tmp/gcsfuse/debug-array-record-dataset/train_*.arecord \
+  grain_worker_count=2 \
+  dataset_name=german_maxtext_nano_data \
+  train_split=train \
+  async_checkpointing=false \
+  model_name='nano-german-slm' \
+  learning_rate=6e-06 \
+  per_device_batch_size=32 \
+  gradient_accumulation_steps=8 \
+  steps=1000 \
+  max_target_length=2048 \
+  packing=true \
+  checkpoint_period=500 \
+  tokenizer_type=huggingface tokenizer_path=german-maxtext-slms/nano-nanochat-tokenizer
+```
