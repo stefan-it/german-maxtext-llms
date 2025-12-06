@@ -9,7 +9,7 @@ datasets:
     hf_data_files: "data/eng_Latn/train/*.parquet"
     max_subtokens: 20_000_000_000
     hf_identifier: "HuggingFaceFW/finepdfs-edu"
-    output_path: "./30-50-5-5-10-mix"
+    output_path: "./30-50-5-5-10-mix/finepdfs_english"
   #finepdfs_german:
   #  hf_data_files: "data/deu_Latn/train/*.parquet"
   #  max_tokens: 300_000
